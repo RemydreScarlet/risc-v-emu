@@ -4,6 +4,7 @@ use self::fnv::FnvHashMap;
 
 use mmu::{AddressingMode, Mmu};
 use terminal::Terminal;
+use crate::jit::JitCompiler;
 
 const CSR_CAPACITY: usize = 4096;
 
@@ -73,7 +74,8 @@ pub struct Cpu {
 	is_reservation_set: bool,
 	_dump_flag: bool,
 	decode_cache: DecodeCache,
-	unsigned_data_mask: u64
+	unsigned_data_mask: u64,
+	jit_compiler: JitCompiler
 }
 
 #[derive(Clone)]
@@ -233,7 +235,8 @@ impl Cpu {
 			is_reservation_set: false,
 			_dump_flag: false,
 			decode_cache: DecodeCache::new(),
-			unsigned_data_mask: 0xffffffffffffffff
+			unsigned_data_mask: 0xffffffffffffffff,
+			jit_compiler: JitCompiler::new()
 		};
 		cpu.x[0xb] = 0x1020; // I don't know why but Linux boot seems to require this initialization
 		cpu.write_csr_raw(CSR_MISA_ADDRESS, 0x800000008014312f);
@@ -281,6 +284,17 @@ impl Cpu {
 	/// Runs program one cycle. Fetch, decode, and execution are completed in a cycle so far.
 	pub fn tick(&mut self) {
 		let instruction_address = self.pc;
+		
+		// Record execution for JIT compilation
+		self.jit_compiler.record_execution(instruction_address);
+		
+		// Check if we have a compiled trace for this address
+		if self.jit_compiler.is_enabled() && self.jit_compiler.is_compiled(instruction_address) {
+			// For Phase 1, we just fall back to interpreter
+			// In Phase 2, this will execute the compiled WASM trace
+			// self.execute_compiled_trace(instruction_address);
+		}
+		
 		match self.tick_operate() {
 			Ok(()) => {},
 			Err(e) => self.handle_exception(e, instruction_address)
@@ -1343,6 +1357,38 @@ impl Cpu {
 	/// Returns mutable `Terminal`
 	pub fn get_mut_terminal(&mut self) -> &mut Box<dyn Terminal> {
 		self.mmu.get_mut_uart().get_mut_terminal()
+	}
+
+	/// Gets JIT compiler reference
+	///
+	pub fn get_jit_compiler(&self) -> &JitCompiler {
+		&self.jit_compiler
+	}
+
+	/// Gets mutable JIT compiler reference
+	///
+	pub fn get_mut_jit_compiler(&mut self) -> &mut JitCompiler {
+		&mut self.jit_compiler
+	}
+
+	/// Enables or disables JIT compilation
+	///
+	/// # Arguments
+	/// * `enabled` Whether to enable JIT compilation
+	pub fn enable_jit(&mut self, enabled: bool) {
+		self.jit_compiler.set_enabled(enabled);
+	}
+
+	/// Checks if JIT compilation is enabled
+	///
+	pub fn is_jit_enabled(&self) -> bool {
+		self.jit_compiler.is_enabled()
+	}
+
+	/// Gets JIT compilation statistics
+	///
+	pub fn get_jit_stats(&self) -> crate::jit::JitStats {
+		self.jit_compiler.get_stats()
 	}
 }
 

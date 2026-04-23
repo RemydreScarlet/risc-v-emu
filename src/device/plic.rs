@@ -112,13 +112,15 @@ impl Plic {
 
 	fn set_ip(&mut self, irq: u32) {
 		let index = (irq >> 3) as usize;
-		self.ips[index] = self.ips[index] | (1 << irq);
+		let bit_offset = irq % 8;
+		self.ips[index] = self.ips[index] | (1u8 << bit_offset);
 		self.needs_update_irq = true;
 	}
 
 	fn clear_ip(&mut self, irq: u32) {
 		let index = (irq >> 3) as usize;
-		self.ips[index] = self.ips[index] & !(1 << irq);
+		let bit_offset = irq % 8;
+		self.ips[index] = self.ips[index] & !(1u8 << bit_offset);
 		self.needs_update_irq = true;
 	}
 
