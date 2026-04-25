@@ -13,6 +13,7 @@ pub mod memory;
 pub mod mmu;
 pub mod elf_analyzer;
 pub mod device;
+pub mod jit;
 
 use cpu::{Cpu, Xlen};
 use elf_analyzer::{ElfAnalyzer};
