@@ -141,6 +141,8 @@ export default class App {
     this.inputs = [];
     this.breakpoints = [];
     this.lastCommandStrings = '';
+    this.mipsMeasurementStartTime = null;
+    this.mipsEnabled = options.mipsEnabled !== undefined ? options.mipsEnabled : true;
     this._setupInputEventHandlers();
   }
 
@@ -408,6 +410,37 @@ export default class App {
             return false;
 	    }
         break;
+      case 'i':
+      case 'in':
+      case 'ins':
+      case 'inst':
+      case 'instc':
+      case 'instco':
+      case 'instcou':
+      case 'instcou':
+      case 'instcoun':
+      case 'instcount':
+        if (command.length === 1) {
+          this.displayInstructionCount();
+          return true;
+        } else {
+          return false;
+        }
+        break;
+      case 'm':
+      case 'mi':
+      case 'mip':
+      case 'mips':
+        if (command.length === 1) {
+          this.displayMips();
+          return true;
+        } else if (command.length === 2 && command[1].toLowerCase() === 'reset') {
+          this.resetMipsMeasurement();
+          return true;
+        } else {
+          return false;
+        }
+        break;
       default:
         return false;
     }
@@ -421,6 +454,9 @@ export default class App {
     this.terminal.writeln('  continue: Continue the main program. Ctrl-A enters debug mode again.');
     this.terminal.writeln('  help: Show this message');
     this.terminal.writeln('  mem <virtual_address>: Show eight-byte content of memory');
+    this.terminal.writeln('  mips: Show current MIPS (Million Instructions Per Second)');
+    this.terminal.writeln('  mips reset: Reset MIPS measurement');
+    this.terminal.writeln('  instcount: Show total instruction count');
     this.terminal.writeln('  pc: Show PC content');
     this.terminal.writeln('  reg <register_num>: Show register content');
     this.terminal.writeln('  step [num]: Run [num](one if omitted) step(s) execution');
@@ -441,10 +477,13 @@ export default class App {
   }
 
   run() {
+    this.startMipsMeasurement();
+    
     const runCycles = () => {
       setTimeout(runCycles, 0);
       this.riscv.run_cycles(this.runCyclesNum);
       this.flush();
+      this.updateMipsDisplay();
       while (this.inputs.length > 0) {
         this.riscv.put_input(this.inputs.shift());
       }
@@ -457,6 +496,7 @@ export default class App {
 
   async continue() {
     this.inDebugMode = false;
+    this.startMipsMeasurement();
 
     return new Promise(resolve => {
       const runCycles = async () => {
@@ -476,6 +516,7 @@ export default class App {
           }
         }
         this.flush();
+        this.updateMipsDisplay();
         while (this.inputs.length > 0) {
           this.riscv.put_input(this.inputs.shift());
         }
@@ -597,6 +638,50 @@ export default class App {
 
   prompt() {
     this.terminal.write('% ');
+  }
+
+  displayInstructionCount() {
+    const count = this.riscv.get_instruction_count();
+    this.terminal.writeln(`Instruction count: ${count.toLocaleString()}`);
+  }
+
+  displayMips() {
+    if (!this.mipsMeasurementStartTime) {
+      this.terminal.writeln('MIPS measurement not started. Run some instructions first.');
+      return;
+    }
+    
+    const currentTime = performance.now();
+    const elapsedSeconds = (currentTime - this.mipsMeasurementStartTime) / 1000.0;
+    const mips = this.riscv.calculate_mips(elapsedSeconds);
+    
+    this.terminal.writeln(`MIPS: ${mips.toFixed(4)} (${elapsedSeconds.toFixed(3)}s elapsed)`);
+  }
+
+  resetMipsMeasurement() {
+    this.riscv.reset_instruction_count();
+    this.mipsMeasurementStartTime = performance.now();
+    this.terminal.writeln('MIPS measurement reset.');
+  }
+
+  startMipsMeasurement() {
+    if (this.mipsEnabled && !this.mipsMeasurementStartTime) {
+      this.mipsMeasurementStartTime = performance.now();
+      this.riscv.reset_instruction_count();
+    }
+  }
+
+  updateMipsDisplay() {
+    if (this.mipsEnabled && this.mipsMeasurementStartTime && !this.inDebugMode) {
+      const currentTime = performance.now();
+      const elapsedSeconds = (currentTime - this.mipsMeasurementStartTime) / 1000.0;
+      const mips = this.riscv.calculate_mips(elapsedSeconds);
+      
+      // Update MIPS display in terminal title or status line if available
+      if (this.terminal.title) {
+        this.terminal.title = `RISC-V Emulator - MIPS: ${mips.toFixed(2)}`;
+      }
+    }
   }
 
 }

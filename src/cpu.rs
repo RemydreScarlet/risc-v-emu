@@ -74,6 +74,7 @@ pub struct Cpu {
 	_dump_flag: bool,
 	decode_cache: DecodeCache,
 	unsigned_data_mask: u64,
+	instruction_count: u64, // For MIPS calculation
 }
 
 #[derive(Clone)]
@@ -234,6 +235,7 @@ impl Cpu {
 			_dump_flag: false,
 			decode_cache: DecodeCache::new(),
 			unsigned_data_mask: 0xffffffffffffffff,
+			instruction_count: 0,
 		};
 		cpu.x[0xb] = 0x1020; // I don't know why but Linux boot seems to require this initialization
 		cpu.write_csr_raw(CSR_MISA_ADDRESS, 0x800000008014312f);
@@ -278,6 +280,26 @@ impl Cpu {
 		self.pc
 	}
 
+	/// Gets the total number of instructions executed
+	pub fn get_instruction_count(&self) -> u64 {
+		self.instruction_count
+	}
+
+	/// Resets the instruction counter (for MIPS measurement)
+	pub fn reset_instruction_count(&mut self) {
+		self.instruction_count = 0;
+	}
+
+	/// Calculates MIPS based on instruction count and elapsed time
+	/// Returns MIPS (Million Instructions Per Second)
+	pub fn calculate_mips(&self, elapsed_seconds: f64) -> f64 {
+		if elapsed_seconds <= 0.0 {
+			0.0
+		} else {
+			(self.instruction_count as f64) / (elapsed_seconds * 1_000_000.0)
+		}
+	}
+
 	/// Runs program one cycle. Fetch, decode, and execution are completed in a cycle so far.
 	pub fn tick(&mut self) {
 		let instruction_address = self.pc;
@@ -290,6 +312,7 @@ impl Cpu {
 		self.mmu.tick(&mut self.csr[CSR_MIP_ADDRESS as usize]);
 		self.handle_interrupt(self.pc);
 		self.clock = self.clock.wrapping_add(1);
+		self.instruction_count = self.instruction_count.wrapping_add(1);
 
 		// cpu core clock : mtime clock in clint = 8 : 1 is
 		// just an arbiraty ratio.

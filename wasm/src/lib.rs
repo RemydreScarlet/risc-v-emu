@@ -276,4 +276,23 @@ impl WasmRiscv {
 		}
 	}
 
+	/// Gets the total number of instructions executed.
+	pub fn get_instruction_count(&self) -> u64 {
+		self.emulator.get_cpu().get_instruction_count()
+	}
+
+	/// Resets the instruction counter for MIPS measurement.
+	pub fn reset_instruction_count(&mut self) {
+		self.emulator.get_mut_cpu().reset_instruction_count();
+	}
+
+	/// Calculates MIPS based on elapsed time in seconds.
+	/// Returns MIPS (Million Instructions Per Second).
+	///
+	/// # Arguments
+	/// * `elapsed_seconds` Time elapsed in seconds
+	pub fn calculate_mips(&self, elapsed_seconds: f64) -> f64 {
+		self.emulator.get_cpu().calculate_mips(elapsed_seconds)
+	}
+
 }

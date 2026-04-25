@@ -49,6 +49,14 @@ export class WasmRiscv {
     free(): void;
     [Symbol.dispose](): void;
     /**
+     * Calculates MIPS based on elapsed time in seconds.
+     * Returns MIPS (Million Instructions Per Second).
+     *
+     * # Arguments
+     * * `elapsed_seconds` Time elapsed in seconds
+     */
+    calculate_mips(elapsed_seconds: number): number;
+    /**
      * Disassembles an instruction Program Counter points to.
      * Use `get_output()` to get the disassembled strings.
      */
@@ -71,6 +79,10 @@ export class WasmRiscv {
      *    Otherwize zero.
      */
     get_address_of_symbol(s: string, error: Uint8Array): bigint;
+    /**
+     * Gets the total number of instructions executed.
+     */
+    get_instruction_count(): bigint;
     /**
      * Gets ascii code byte sent from the emulator to terminal.
      * The emulator holds output buffer inside. This method returns zero
@@ -136,6 +148,10 @@ export class WasmRiscv {
      * * `reg` register number. Must be 0-31.
      */
     read_register(reg: number): bigint;
+    /**
+     * Resets the instruction counter for MIPS measurement.
+     */
+    reset_instruction_count(): void;
     /**
      * Runs program set by `setup_program()`. The emulator won't stop forever
      * unless [`riscv-tests`](https://github.com/riscv/riscv-tests) programs.

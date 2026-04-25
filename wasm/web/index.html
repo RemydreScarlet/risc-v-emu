@@ -65,14 +65,47 @@
         }
 
         const app = new App(riscv, terminal, {
-          debugModeEnabled: debugMode
+          debugModeEnabled: debugMode,
+          mipsEnabled: true
         });
+
+        // Start MIPS measurement
+        riscv.reset_instruction_count();
+        const mipsStartTime = performance.now();
+
+        // Update MIPS display periodically
+        const updateMipsDisplay = () => {
+          const currentTime = performance.now();
+          const elapsedSeconds = (currentTime - mipsStartTime) / 1000.0;
+          const instructionCount = riscv.get_instruction_count();
+          const mips = riscv.calculate_mips(elapsedSeconds);
+
+          document.getElementById('mips-value').textContent = mips.toFixed(2);
+          document.getElementById('instruction-count').textContent = instructionCount.toLocaleString();
+          document.getElementById('elapsed-time').textContent = elapsedSeconds.toFixed(1);
+
+          if (!debugMode) {
+            requestAnimationFrame(updateMipsDisplay);
+          }
+        };
 
         if (debugMode) {
           terminal.writeln('Debug mode.');
           app.startDebugMode();
+          // In debug mode, update MIPS display less frequently
+          setInterval(() => {
+            const currentTime = performance.now();
+            const elapsedSeconds = (currentTime - mipsStartTime) / 1000.0;
+            const instructionCount = riscv.get_instruction_count();
+            const mips = riscv.calculate_mips(elapsedSeconds);
+
+            document.getElementById('mips-value').textContent = mips.toFixed(2);
+            document.getElementById('instruction-count').textContent = instructionCount.toLocaleString();
+            document.getElementById('elapsed-time').textContent = elapsedSeconds.toFixed(1);
+          }, 1000);
         } else {
           app.run();
+          requestAnimationFrame(updateMipsDisplay);
         }
       };
 
@@ -193,6 +226,11 @@
     <button id="run-button" disabled>Run</button>
     <input id="debugger-checkbox" type="checkbox" disabled>Debugger</input>
     <div id="terminal"></div>
+    <div id="mips-display" style="margin-top: 10px; font-family: monospace; color: #333;">
+      <strong>MIPS:</strong> <span id="mips-value">0.00</span> | 
+      <strong>Instructions:</strong> <span id="instruction-count">0</span> | 
+      <strong>Time:</strong> <span id="elapsed-time">0.0</span>s
+    </div>
     <div>
       <a href="https://risc-v-getting-started-guide.readthedocs.io/en/latest/linux-qemu.html">Linux</a>, <a href="https://github.com/mit-pdos/xv6-riscv" target="_blank">xv6</a> on <a href="https://github.com/takahirox/riscv-rust" target="_blank">RISC-V processor emulator in Rust+WASM</a>
     </div>

@@ -62,6 +62,19 @@ class WasmRiscv {
         wasm.__wbg_wasmriscv_free(ptr, 0);
     }
     /**
+     * Calculates MIPS based on elapsed time in seconds.
+     * Returns MIPS (Million Instructions Per Second).
+     *
+     * # Arguments
+     * * `elapsed_seconds` Time elapsed in seconds
+     * @param {number} elapsed_seconds
+     * @returns {number}
+     */
+    calculate_mips(elapsed_seconds) {
+        const ret = wasm.wasmriscv_calculate_mips(this.__wbg_ptr, elapsed_seconds);
+        return ret;
+    }
+    /**
      * Disassembles an instruction Program Counter points to.
      * Use `get_output()` to get the disassembled strings.
      */
@@ -97,6 +110,14 @@ class WasmRiscv {
         var ptr1 = passArray8ToWasm0(error, wasm.__wbindgen_malloc);
         var len1 = WASM_VECTOR_LEN;
         const ret = wasm.wasmriscv_get_address_of_symbol(this.__wbg_ptr, ptr0, len0, ptr1, len1, error);
+        return BigInt.asUintN(64, ret);
+    }
+    /**
+     * Gets the total number of instructions executed.
+     * @returns {bigint}
+     */
+    get_instruction_count() {
+        const ret = wasm.wasmriscv_get_instruction_count(this.__wbg_ptr);
         return BigInt.asUintN(64, ret);
     }
     /**
@@ -196,6 +217,12 @@ class WasmRiscv {
     read_register(reg) {
         const ret = wasm.wasmriscv_read_register(this.__wbg_ptr, reg);
         return BigInt.asUintN(64, ret);
+    }
+    /**
+     * Resets the instruction counter for MIPS measurement.
+     */
+    reset_instruction_count() {
+        wasm.wasmriscv_reset_instruction_count(this.__wbg_ptr);
     }
     /**
      * Runs program set by `setup_program()`. The emulator won't stop forever
