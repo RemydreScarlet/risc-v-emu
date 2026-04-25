@@ -6,7 +6,6 @@ use std::collections::HashMap;
 
 use riscv_emu_rust::Emulator;
 use riscv_emu_rust::default_terminal::DefaultTerminal;
-use riscv_emu_rust::jit::JitCompiler;
 
 /// `WasmRiscv` is an interface between user JavaScript code and
 /// WebAssembly RISC-V emulator. The following code is example
@@ -51,8 +50,7 @@ use riscv_emu_rust::jit::JitCompiler;
 /// ```
 #[wasm_bindgen]
 pub struct WasmRiscv {
-	emulator: Emulator,
-	jit_compiler: JitCompiler
+	emulator: Emulator
 }
 
 #[wasm_bindgen]
@@ -60,8 +58,7 @@ impl WasmRiscv {
 	/// Creates a new `WasmRiscv`.
 	pub fn new() -> Self {
 		WasmRiscv {
-			emulator: Emulator::new(Box::new(DefaultTerminal::new())),
-			jit_compiler: JitCompiler::new()
+			emulator: Emulator::new(Box::new(DefaultTerminal::new()))
 		}
 	}
 
@@ -279,52 +276,4 @@ impl WasmRiscv {
 		}
 	}
 
-	/// Enables or disables JIT compilation.
-	///
-	/// # Arguments
-	/// * `enabled` Whether to enable JIT compilation
-	pub fn enable_jit(&mut self, enabled: bool) {
-		self.jit_compiler.set_enabled(enabled);
-	}
-
-	/// Compiles a trace of instructions for JIT execution.
-	/// This is a synchronous placeholder for Phase 1.
-	/// In Phase 2, this will become an async operation.
-	///
-	/// # Arguments
-	/// * `start_addr` Starting address of the trace
-	/// * `end_addr` Ending address of the trace
-	/// Returns true if compilation was successful, false otherwise
-	pub fn compile_trace(&mut self, start_addr: u64, end_addr: u64) -> bool {
-		// Placeholder compilation logic for Phase 1
-		// In Phase 2, this will:
-		// 1. Record instruction trace from start_addr to end_addr
-		// 2. Translate RISC-V instructions to WASM
-		// 3. Generate WASM bytecode
-		// 4. Cache the compiled trace
-		// 5. Return async Promise
-		
-		println!("JIT: Compiling trace from 0x{:x} to 0x{:x}", start_addr, end_addr);
-		
-		// For Phase 1, just return true to indicate "success"
-		true
-	}
-
-	/// Gets JIT compilation statistics.
-	///
-	/// Returns a JSON string with JIT statistics including:
-	/// - enabled: Whether JIT is enabled
-	/// - compiled_traces: Number of compiled traces
-	/// - total_executions: Total recorded executions
-	/// - hot_addresses: Number of hot addresses
-	pub fn get_jit_stats(&self) -> String {
-		let stats = self.jit_compiler.get_stats();
-		format!(
-			r#"{{"enabled":{},"compiled_traces":{},"total_executions":{},"hot_addresses":{}}}"#,
-			stats.enabled,
-			stats.compiled_traces,
-			stats.total_executions,
-			stats.hot_addresses
-		)
-	}
 }

@@ -408,30 +408,6 @@ export default class App {
             return false;
 	    }
         break;
-      case 'j':
-      case 'ji':
-      case 'jit':
-        if (command.length === 2) {
-          if (command[1] === 'enable') {
-            this.enableJit();
-            return true;
-          } else if (command[1] === 'disable') {
-            this.disableJit();
-            return true;
-          } else if (command[1] === 'stats') {
-            this.showJitStats();
-            return true;
-          } else if (command[1] === 'compile') {
-            this.terminal.writeln('Usage: jit compile <start_addr> <end_addr>');
-            return false;
-          }
-        } else if (command.length === 4 && command[1] === 'compile') {
-          this.compileJitTrace(command[2], command[3]);
-          return true;
-        } else {
-          return false;
-        }
-        break;
       default:
         return false;
     }
@@ -444,10 +420,6 @@ export default class App {
     this.terminal.writeln('  delete <virtual_address>: Delete breakpoint.');
     this.terminal.writeln('  continue: Continue the main program. Ctrl-A enters debug mode again.');
     this.terminal.writeln('  help: Show this message');
-    this.terminal.writeln('  jit enable: Enable JIT compilation');
-    this.terminal.writeln('  jit disable: Disable JIT compilation');
-    this.terminal.writeln('  jit stats: Show JIT compilation statistics');
-    this.terminal.writeln('  jit compile <start_addr> <end_addr>: Compile trace');
     this.terminal.writeln('  mem <virtual_address>: Show eight-byte content of memory');
     this.terminal.writeln('  pc: Show PC content');
     this.terminal.writeln('  reg <register_num>: Show register content');
@@ -627,48 +599,4 @@ export default class App {
     this.terminal.write('% ');
   }
 
-  // JIT helper methods
-  enableJit() {
-    this.riscv.enable_jit(true);
-    this.terminal.writeln('JIT compilation enabled');
-  }
-
-  disableJit() {
-    this.riscv.enable_jit(false);
-    this.terminal.writeln('JIT compilation disabled');
-  }
-
-  showJitStats() {
-    const stats = this.riscv.get_jit_stats();
-    try {
-      const jitStats = JSON.parse(stats);
-      this.terminal.writeln('JIT Statistics:');
-      this.terminal.writeln('  Enabled: ' + jitStats.enabled);
-      this.terminal.writeln('  Compiled Traces: ' + jitStats.compiled_traces);
-      this.terminal.writeln('  Total Executions: ' + jitStats.total_executions);
-      this.terminal.writeln('  Hot Addresses: ' + jitStats.hot_addresses);
-    } catch (e) {
-      this.terminal.writeln('Error parsing JIT stats: ' + stats);
-    }
-  }
-
-  compileJitTrace(startAddrStr, endAddrStr) {
-    let startAddr, endAddr;
-    try {
-      startAddr = BigInt(startAddrStr);
-      endAddr = BigInt(endAddrStr);
-    } catch (e) {
-      this.terminal.writeln('Invalid address format. Use hexadecimal format (e.g., 0x80000000)');
-      return;
-    }
-
-    this.terminal.writeln('Compiling JIT trace from 0x' + startAddr.toString(16) + ' to 0x' + endAddr.toString(16) + '...');
-    
-    const success = this.riscv.compile_trace(startAddr, endAddr);
-    if (success) {
-      this.terminal.writeln('JIT trace compilation completed successfully');
-    } else {
-      this.terminal.writeln('JIT trace compilation failed');
-    }
-  }
 }

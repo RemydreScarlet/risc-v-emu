@@ -13,7 +13,6 @@ pub mod memory;
 pub mod mmu;
 pub mod elf_analyzer;
 pub mod device;
-pub mod jit;
 
 use cpu::{Cpu, Xlen};
 use elf_analyzer::{ElfAnalyzer};
@@ -318,37 +317,6 @@ impl Emulator {
 		}
 	}
 
-	/// Enables or disables JIT compilation
-	///
-	/// # Arguments
-	/// * `enabled` Whether to enable JIT compilation
-	pub fn enable_jit(&mut self, enabled: bool) {
-		self.cpu.enable_jit(enabled);
-	}
-
-	/// Checks if JIT compilation is enabled
-	///
-	pub fn is_jit_enabled(&self) -> bool {
-		self.cpu.is_jit_enabled()
-	}
-
-	/// Gets JIT compilation statistics
-	///
-	pub fn get_jit_stats(&self) -> crate::jit::JitStats {
-		self.cpu.get_jit_stats()
-	}
-
-	/// Gets JIT compiler reference
-	///
-	pub fn get_jit_compiler(&self) -> &crate::jit::JitCompiler {
-		self.cpu.get_jit_compiler()
-	}
-
-	/// Gets mutable JIT compiler reference
-	///
-	pub fn get_mut_jit_compiler(&mut self) -> &mut crate::jit::JitCompiler {
-		self.cpu.get_mut_jit_compiler()
-	}
 }
 
 #[cfg(test)]

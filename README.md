@@ -7,7 +7,7 @@ riscv-rust is a [RISC-V](https://riscv.org/) processor and peripheral devices em
 
 ## Online Demo
 
-You can run Linux or xv6 on the emulator in your browser. The online demo includes a built-in debugger and experimental JIT compilation controls.
+You can run Linux or xv6 on the emulator in your browser. The online demo includes a built-in debugger.
 
 **[Online demo](https://takahirox.github.io/riscv-rust/wasm/web/index.html)**
 
@@ -28,7 +28,6 @@ You can run Linux or xv6 on the emulator in your browser. The online demo includ
 - Runnable locally as a desktop application
 - Runnable in browser with WebAssembly
 - Built-in debugger (breakpoints, step execution, register/memory inspection)
-- **Experimental WebAssembly JIT compilation** for performance acceleration
 - Decode cache optimization for frequently executed instructions
 - Optional page cache optimization
 - Importable as a Rust crate or npm package
@@ -49,10 +48,6 @@ You can run Linux or xv6 on the emulator in your browser. The online demo includ
 │  ┌──────┴─────────────────────┴──────┐  │
 │  │         Emulator (lib.rs)          │  │
 │  │  ┌─────────┐  ┌─────────────────┐  │  │
-│  │  │   CPU   │  │  JIT Compiler   │  │  │
-│  │  │ (cpu.rs)│  │  (jit/mod.rs)   │  │  │
-│  │  └───┬─────┘  │  (jit/wasm.rs)  │  │  │
-│  │      │        └─────────────────┘  │  │
 │  │  ┌───┴───┐  ┌─────────┐ ┌────────┐ │  │
 │  │  │  MMU  │  │ Memory  │ │ Devices│ │  │
 │  │  │(mmu.rs)│  │(memory.rs)│(device/)│ │  │
@@ -165,42 +160,6 @@ Press `Ctrl-A` in the web demo terminal to enter debug mode.
 | `mem <addr>` | Show 8-byte memory content at virtual address |
 | `help` | Show all commands |
 
-## JIT Compilation (Experimental)
-
-The emulator includes an experimental WebAssembly-based JIT (Just-In-Time) compilation system to accelerate frequently executed instruction traces.
-
-### Enabling JIT
-
-**Rust API:**
-```rust
-emulator.enable_jit(true);
-```
-
-**JavaScript/WASM API:**
-```javascript
-riscv.enable_jit(true);
-```
-
-### JIT Commands (Web Demo)
-
-In the web demo debug mode:
-
-| Command | Description |
-|---------|-------------|
-| `jit enable` | Enable JIT compilation |
-| `jit disable` | Disable JIT compilation |
-| `jit stats` | Show JIT statistics (compiled traces, hot addresses) |
-| `jit compile <start> <end>` | Manually compile a trace from start to end address |
-
-### JIT Architecture Overview
-
-The JIT system consists of:
-- **Hot trace detection**: Execution counters identify frequently executed addresses
-- **WASM bytecode generation**: RISC-V instruction traces are translated to WebAssembly (`src/jit/wasm.rs`)
-- **Trace cache**: Compiled traces are cached for reuse (`src/jit/mod.rs`)
-
-Current JIT status: **Phase 2 in progress** — integer instruction translation (ADD, ADDI, SUB, LW, SW) is being implemented.
-
 ## How to Import and Use the WebAssembly RISC-V Emulator in a Web Browser
 
 See [wasm/web](./wasm/web)
@@ -222,9 +181,6 @@ riscv-rust/
 │   ├── elf_analyzer.rs # ELF file parser
 │   ├── terminal.rs     # Terminal trait
 │   ├── default_terminal.rs
-│   ├── jit/
-│   │   ├── mod.rs      # JIT compiler (trace cache, counters)
-│   │   └── wasm.rs     # WASM bytecode generator
 │   └── device/
 │       ├── mod.rs
 │       ├── uart.rs
