@@ -17,6 +17,7 @@ export const wasmriscv_read_register: (a: number, b: number) => bigint;
 export const wasmriscv_reset_instruction_count: (a: number) => void;
 export const wasmriscv_run: (a: number) => void;
 export const wasmriscv_run_cycles: (a: number, b: number) => void;
+export const wasmriscv_run_cycles_optimized: (a: number, b: number) => void;
 export const wasmriscv_run_until_breakpoints: (a: number, b: number, c: number, d: number) => number;
 export const wasmriscv_setup_dtb: (a: number, b: number, c: number) => void;
 export const wasmriscv_setup_filesystem: (a: number, b: number, c: number) => void;

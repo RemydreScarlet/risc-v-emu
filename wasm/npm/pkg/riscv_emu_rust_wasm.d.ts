@@ -166,6 +166,14 @@ export class WasmRiscv {
      */
     run_cycles(cycles: number): void;
     /**
+     * Runs program set by `setup_program()` in `cycles` cycles with optimized batching.
+     * This method reduces JS-WASM bridge overhead by processing cycles in larger batches.
+     *
+     * # Arguments
+     * * `cycles`
+     */
+    run_cycles_optimized(cycles: number): void;
+    /**
      * Runs program until breakpoints. Also known as debugger's continue command.
      * This method takes `max_cycles`. If the program doesn't hit any breakpoint
      * in `max_cycles` cycles this method returns `false`. Otherwise `true`.

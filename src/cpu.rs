@@ -239,6 +239,9 @@ impl Cpu {
 		};
 		cpu.x[0xb] = 0x1020; // I don't know why but Linux boot seems to require this initialization
 		cpu.write_csr_raw(CSR_MISA_ADDRESS, 0x800000008014312f);
+		
+		// Enable page cache optimization for better performance
+		cpu.mmu.enable_page_cache(true);
 		cpu
 	}
 
@@ -3401,7 +3404,7 @@ const INSTRUCTIONS: [Instruction; INSTRUCTION_NUM] = [
 /// You need to carefully choose the number. Too small number causes
 /// bad cache hit ratio. Too large number causes memory consumption
 /// and host hardware CPU cache memory miss.
-const DECODE_CACHE_ENTRY_NUM: usize = 0x1000;
+const DECODE_CACHE_ENTRY_NUM: usize = 0x4000;
 
 const INVALID_CACHE_ENTRY: usize = INSTRUCTION_NUM;
 const NULL_ENTRY: usize = DECODE_CACHE_ENTRY_NUM;

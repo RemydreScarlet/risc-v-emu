@@ -481,7 +481,7 @@ export default class App {
     
     const runCycles = () => {
       setTimeout(runCycles, 0);
-      this.riscv.run_cycles(this.runCyclesNum);
+      this.riscv.run_cycles_optimized(this.runCyclesNum);
       this.flush();
       this.updateMipsDisplay();
       while (this.inputs.length > 0) {
@@ -507,9 +507,9 @@ export default class App {
         setTimeout(runCycles, 0);
         if (this.breakpoints.length === 0) {
           // If no breakpoint set, we don't need to take care breakpoints
-          // so calling run_cycles() which should be faster than
+          // so calling run_cycles_optimized() which should be faster than
           // run_until_breakpoints()
-          this.riscv.run_cycles(this.runCyclesNum);
+          this.riscv.run_cycles_optimized(this.runCyclesNum);
         } else {
           if (this.riscv.run_until_breakpoints(new BigUint64Array(this.breakpoints), this.runCyclesNum)) {
             this.inDebugMode = true;

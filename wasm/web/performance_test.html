@@ -1,0 +1,49 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Performance Test</title>
+</head>
+<body>
+    <h1>RISC-V Performance Test</h1>
+    <div id="output"></div>
+    <script>
+        async function testPerformance() {
+            const output = document.getElementById('output');
+            const riscv = new WasmRiscv();
+            
+            // 簡単なテストプログラム（NOP命令を多数実行）
+            const program = new Uint8Array([
+                0x13, 0x00, 0x00, 0x00, // nop
+                0x13, 0x00, 0x00, 0x00, // nop
+                0x13, 0x00, 0x00, 0x00, // nop
+                // ... 1000個のNOP命令
+            ]);
+            
+            // 1000個のNOP命令で埋める
+            const nopProgram = new Uint8Array(4000);
+            for (let i = 0; i < 1000; i++) {
+                nopProgram[i*4] = 0x13;
+                nopProgram[i*4+1] = 0x00;
+                nopProgram[i*4+2] = 0x00;
+                nopProgram[i*4+3] = 0x00;
+            }
+            
+            riscv.setup_program(nopProgram);
+            
+            const start = performance.now();
+            riscv.run_cycles_optimized(100000); // 10万サイクル実行
+            const end = performance.now();
+            
+            const mips = riscv.calculate_mips((end - start) / 1000);
+            output.innerHTML = `
+                <p>実行時間: ${(end - start).toFixed(3)}ms</p>
+                <p>MIPS: ${mips.toFixed(4)}</p>
+                <p>命令数: ${riscv.get_instruction_count()}</p>
+            `;
+        }
+        
+        testPerformance();
+    </script>
+</body>
+</html>
